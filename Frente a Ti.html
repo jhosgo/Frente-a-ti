@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Frente a Ti</title>
+<style>
+  :root{
+    --bg: #f4f2ea;
+    --bg-2: #ebe6d6;
+    --panel: #ffffff;
+    --line: #ddd6bf;
+    --text: #201c12;
+    --muted: #6b6350;
+    --gold: #a3701f;
+    --gold-soft: #f0dfba;
+    --thread: #46509c;
+    --ok: #2f8f5b;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg: #0d1224;
+      --bg-2: #161d38;
+      --panel: #131a34;
+      --line: #2a3358;
+      --text: #eef0fb;
+      --muted: #9aa3c7;
+      --gold: #e3b464;
+      --gold-soft: #3a3220;
+      --thread: #8a97ee;
+      --ok: #6fd39a;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg: #0d1224;
+    --bg-2: #161d38;
+    --panel: #131a34;
+    --line: #2a3358;
+    --text: #eef0fb;
+    --muted: #9aa3c7;
+    --gold: #e3b464;
+    --gold-soft: #3a3220;
+    --thread: #8a97ee;
+    --ok: #6fd39a;
+  }
+  html{ scroll-padding-top: env(safe-area-inset-top, 0px); }
+  *{ box-sizing: border-box; }
+  html, body{
+    margin: 0;
+    min-height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  body{ background: radial-gradient(120% 90% at 50% -10%, var(--bg-2), var(--bg) 65%) no-repeat, var(--bg); }
+  .app{ max-width: 480px; margin: 0 auto; padding: 28px 20px 48px; }
+  [hidden]{ display: none !important; }
+
+  h1{
+    font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+    font-weight: 400;
+    font-size: 34px;
+    margin: 0 0 6px;
+    letter-spacing: 0.01em;
+  }
+  .tag{ color: var(--muted); font-size: 15px; line-height: 1.5; margin: 0 0 26px; }
+
+  .step{
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 18px;
+    margin-bottom: 14px;
+  }
+  .step h2{ font-size: 15px; margin: 0 0 4px; font-weight: 600; }
+  .step p{ margin: 0 0 12px; font-size: 13px; color: var(--muted); line-height: 1.5; }
+
+  button{
+    font: inherit;
+    cursor: pointer;
+  }
+  .btn{
+    display: block;
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: var(--bg-2);
+    color: var(--text);
+    font-size: 14.5px;
+  }
+  .btn:active{ transform: scale(0.99); }
+  .btn.primary{
+    background: var(--gold);
+    border-color: var(--gold);
+    color: #1a1204;
+    font-weight: 600;
+    font-size: 16px;
+    padding: 15px;
+    border-radius: 12px;
+  }
+  .btn:focus-visible, input:focus-visible{ outline: 2px solid var(--gold); outline-offset: 2px; }
+  .row{ display: flex; gap: 8px; margin-top: 10px; }
+  .row .btn{ flex: 1; }
+
+  input[type="text"]{
+    width: 100%;
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: transparent;
+    color: var(--text);
+    font-size: 15px;
+    font-variant-numeric: tabular-nums;
+  }
+  .code{
+    margin-top: 10px;
+    font-variant-numeric: tabular-nums;
+    font-size: 14px;
+    color: var(--text);
+  }
+  .status{ font-size: 12.5px; color: var(--muted); min-height: 16px; margin-top: 8px; }
+  .error{ font-size: 13px; color: #c4553a; text-align: center; min-height: 18px; margin-top: 10px; }
+  .privacy{ font-size: 12px; color: var(--muted); text-align: center; margin-top: 22px; line-height: 1.5; }
+
+  /* Pantalla de brújula */
+  .topbar{ display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .link{
+    background: none; border: none; color: var(--muted);
+    font-size: 14px; padding: 8px 0;
+  }
+  .dist{ font-size: 13px; color: var(--muted); }
+  .dist strong{ color: var(--text); font-weight: 600; }
+
+  .compass-wrap{ position: relative; width: 100%; max-width: 340px; margin: 10px auto 0; }
+  .compass-wrap svg{ width: 100%; height: auto; display: block; }
+  .ring-line{ stroke: var(--line); }
+  .tick{ stroke: var(--muted); }
+  .lbl{ fill: var(--muted); font-size: 15px; font-family: Georgia, serif; }
+  .lbl.n{ fill: var(--gold); font-weight: 700; }
+  .marker{ fill: var(--gold); stroke: var(--panel); stroke-width: 3; transition: fill .2s; }
+  .guide{ stroke: var(--gold); opacity: .45; stroke-dasharray: 3 5; }
+  .pointer{ fill: var(--text); }
+  .aligned .marker{ fill: var(--ok); animation: pulse 1.4s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+  .aligned .guide{ stroke: var(--ok); opacity: .8; }
+  @keyframes pulse{ 0%,100%{ transform: scale(1); } 50%{ transform: scale(1.25); } }
+  @media (prefers-reduced-motion: reduce){ .aligned .marker{ animation: none; } }
+
+  .readout{ text-align: center; margin-top: 8px; }
+  .turn{
+    font-family: Georgia, "Iowan Old Style", serif;
+    font-size: 24px;
+    line-height: 1.3;
+    min-height: 32px;
+  }
+  .aligned-text{ color: var(--ok); }
+  .sub{ color: var(--muted); font-size: 13.5px; margin-top: 8px; line-height: 1.5; }
+  .nums{ display: flex; justify-content: center; gap: 28px; margin-top: 16px; font-variant-numeric: tabular-nums; }
+  .nums div{ font-size: 22px; font-weight: 300; }
+  .nums span{ display: block; font-size: 12px; color: var(--muted); font-weight: 400; margin-top: 2px; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Pantalla 1: preparar -->
+  <section id="screenSetup">
+    <h1>Frente a Ti</h1>
+    <p class="tag">Gira hasta quedar de frente a la persona que quieres, esté donde esté en el mundo.</p>
+
+    <div class="step">
+      <h2>1. Tu ubicación</h2>
+      <p>Toca el botón y comparte tu código con la otra persona (por WhatsApp, por ejemplo).</p>
+      <button class="btn" id="btnLocate">Obtener mi ubicación</button>
+      <div class="code" id="myCode" hidden></div>
+      <div class="row" id="shareRow" hidden>
+        <button class="btn" id="btnCopy">Copiar código</button>
+        <button class="btn" id="btnShare">Enviar</button>
+      </div>
+      <div class="status" id="locStatus"></div>
+    </div>
+
+    <div class="step">
+      <h2>2. Su ubicación</h2>
+      <p>Pega aquí el código que la otra persona te envió. También sirven las coordenadas copiadas de Google Maps.</p>
+      <input type="text" id="otherInput" inputmode="text" autocomplete="off" placeholder="Ej. -34.60370, -58.38160">
+    </div>
+
+    <button class="btn primary" id="btnStart">Empezar a mirar</button>
+    <div class="error" id="errorMsg"></div>
+    <p class="privacy">Tu ubicación se queda en tu teléfono. Esta app no envía ni guarda datos en ningún servidor.</p>
+  </section>
+
+  <!-- Pantalla 2: brújula -->
+  <section id="screenCompass" hidden>
+    <div class="topbar">
+      <button class="link" id="btnBack">Cambiar ubicaciones</button>
+      <div class="dist" id="distText"></div>
+    </div>
+
+    <div class="compass-wrap" id="compassWrap">
+      <svg viewBox="0 0 300 300" role="img" aria-label="Brújula que indica hacia dónde girar">
+        <g id="ring">
+          <circle cx="150" cy="150" r="118" fill="none" class="ring-line" stroke-width="2"/>
+          <g id="ticks"></g>
+          <line x1="150" y1="150" x2="150" y2="32" class="guide" stroke-width="2" id="guideLine"/>
+          <circle cx="150" cy="32" r="11" class="marker" id="marker"/>
+        </g>
+        <polygon points="150,26 140,4 160,4" class="pointer"/>
+        <circle cx="150" cy="150" r="4" fill="var(--muted)"/>
+      </svg>
+    </div>
+
+    <div class="readout">
+      <div class="turn" id="turnText">Esperando la brújula…</div>
+      <div class="sub" id="subText">Sostén el teléfono frente a ti y mantenlo quieto unos segundos.</div>
+      <div class="nums">
+        <div><span id="headNum">—</span><span>Tu dirección</span></div>
+        <div><span id="targetNum">—</span><span>Dirección objetivo</span></div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var me = null, other = null;
+  var targetBearing = 0;
+  var rawHeading = null, shownHeading = 0, haveHeading = false;
+  var wasAligned = false, sensorsOn = false, rafId = null;
+
+  function toRad(d){ return d * Math.PI / 180; }
+  function toDeg(r){ return r * 180 / Math.PI; }
+  function bearing(a, b){
+    var p1 = toRad(a.lat), p2 = toRad(b.lat), dl = toRad(b.lon - a.lon);
+    var y = Math.sin(dl) * Math.cos(p2);
+    var x = Math.cos(p1) * Math.sin(p2) - Math.sin(p1) * Math.cos(p2) * Math.cos(dl);
+    return (toDeg(Math.atan2(y, x)) + 360) % 360;
+  }
+  function distKm(a, b){
+    var R = 6371, dp = toRad(b.lat - a.lat), dl = toRad(b.lon - a.lon);
+    var h = Math.sin(dp/2)*Math.sin(dp/2) + Math.cos(toRad(a.lat))*Math.cos(toRad(b.lat))*Math.sin(dl/2)*Math.sin(dl/2);
+    return 2 * R * Math.atan2(Math.sqrt(h), Math.sqrt(1-h));
+  }
+  function fmt(p){ return p.lat.toFixed(5) + ", " + p.lon.toFixed(5); }
+  function parseCode(text){
+    var nums = (text || "").replace(/,(?=\d)(?!\d*\.)/g, ".").match(/-?\d+(?:\.\d+)?/g);
+    if(!nums || nums.length < 2) return null;
+    var lat = parseFloat(nums[0]), lon = parseFloat(nums[1]);
+    if(isNaN(lat) || isNaN(lon) || Math.abs(lat) > 90 || Math.abs(lon) > 180) return null;
+    return { lat: lat, lon: lon };
+  }
+
+  // Almacenamiento (solo comodidad; puede venir vacío)
+  function save(k, v){ try { localStorage.setItem(k, v); } catch(e){} }
+  function load(k){ try { return localStorage.getItem(k); } catch(e){ return null; } }
+
+  var savedOther = load("nm_other");
+  if(savedOther) $("otherInput").value = savedOther;
+
+  // Marcas de la brújula
+  (function buildTicks(){
+    var g = $("ticks"), html = "";
+    for(var i = 0; i < 24; i++){
+      var ang = i * 15, major = i % 6 === 0;
+      var r1 = 118, r2 = major ? 102 : 110;
+      var a = toRad(ang - 90);
+      html += '<line class="tick" x1="' + (150 + r1*Math.cos(a)) + '" y1="' + (150 + r1*Math.sin(a)) +
+              '" x2="' + (150 + r2*Math.cos(a)) + '" y2="' + (150 + r2*Math.sin(a)) +
+              '" stroke-width="' + (major ? 2 : 1) + '" opacity="' + (major ? 0.9 : 0.45) + '"/>';
+    }
+    var labels = [["N",0],["E",90],["S",180],["O",270]];
+    labels.forEach(function(l){
+      var a = toRad(l[1] - 90), r = 84;
+      var x = 150 + r*Math.cos(a), y = 150 + r*Math.sin(a) + 5;
+      var rot = l[1];
+      html += '<text class="lbl' + (l[0] === "N" ? ' n' : '') + '" x="' + x + '" y="' + y + '" text-anchor="middle" transform="rotate(' + rot + ' ' + x + ' ' + (y-5) + ')">' + l[0] + '</text>';
+    });
+    g.innerHTML = html;
+  })();
+
+  // Paso 1: ubicación propia
+  $("btnLocate").addEventListener("click", function(){
+    var st = $("locStatus");
+    if(!navigator.geolocation){ st.textContent = "Este dispositivo no permite obtener la ubicación."; return; }
+    st.textContent = "Buscando tu ubicación…";
+    navigator.geolocation.getCurrentPosition(function(pos){
+      me = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+      $("myCode").textContent = "Tu código: " + fmt(me);
+      $("myCode").hidden = false;
+      $("shareRow").hidden = false;
+      st.textContent = "Listo. Envía este código a la otra persona.";
+    }, function(){
+      st.textContent = "No pudimos obtenerla. Revisa que el permiso de ubicación esté activado.";
+    }, { enableHighAccuracy: true, timeout: 12000 });
+  });
+
+  $("btnCopy").addEventListener("click", function(){
+    if(!me) return;
+    var text = fmt(me), st = $("locStatus");
+    try {
+      navigator.clipboard.writeText(text).then(function(){ st.textContent = "Código copiado."; },
+        function(){ st.textContent = "No se pudo copiar. Mantén presionado el código para copiarlo."; });
+    } catch(e){ st.textContent = "No se pudo copiar. Mantén presionado el código para copiarlo."; }
+  });
+  $("btnShare").addEventListener("click", function(){
+    if(!me) return;
+    var text = "Mi ubicación para Frente a Ti: " + fmt(me);
+    if(navigator.share){ navigator.share({ text: text }).catch(function(){}); }
+    else { $("btnCopy").click(); }
+  });
+
+  // Empezar
+  $("btnStart").addEventListener("click", function(){
+    var err = $("errorMsg"); err.textContent = "";
+    if(!me){ err.textContent = "Primero obtén tu ubicación (paso 1)."; return; }
+    var o = parseCode($("otherInput").value);
+    if(!o){ err.textContent = "No entendimos el código de la otra persona. Debe verse así: -34.60370, -58.38160"; return; }
+    other = o;
+    save("nm_other", $("otherInput").value);
+    targetBearing = bearing(me, other);
+    $("distText").innerHTML = "Distancia: <strong>" + Math.round(distKm(me, other)).toLocaleString("es") + " km</strong>";
+    $("targetNum").textContent = Math.round(targetBearing) + "°";
+    $("screenSetup").hidden = true;
+    $("screenCompass").hidden = false;
+    requestSensors();
+    startLoop();
+  });
+
+  $("btnBack").addEventListener("click", function(){
+    stopLoop();
+    $("screenCompass").hidden = true;
+    $("screenSetup").hidden = false;
+  });
+
+  // Sensores
+  function requestSensors(){
+    if(sensorsOn){ return; }
+    var DOE = window.DeviceOrientationEvent;
+    if(DOE && typeof DOE.requestPermission === "function"){
+      DOE.requestPermission().then(function(s){
+        if(s === "granted"){ attach(); } else { noSensor("Sin permiso para usar la brújula. Actívalo en los ajustes del navegador."); }
+      }).catch(function(){ noSensor("No se pudo activar la brújula."); });
+    } else { attach(); }
+  }
+  function attach(){
+    sensorsOn = true;
+    window.addEventListener("deviceorientationabsolute", onOrientation, true);
+    window.addEventListener("deviceorientation", onOrientation, true);
+    setTimeout(function(){
+      if(!haveHeading){
+        noSensor("Este dispositivo no entrega datos de brújula.");
+      }
+    }, 3000);
+  }
+  function noSensor(msg){
+    $("turnText").textContent = "Gira hacia " + Math.round(targetBearing) + "°";
+    $("subText").textContent = msg + " Usa otra app de brújula y gira hasta que marque " + Math.round(targetBearing) + "°.";
+  }
+  function tiltHeading(alpha, beta, gamma){
+    var x = toRad(beta || 0), y = toRad(gamma || 0), z = toRad(alpha || 0);
+    var cY = Math.cos(y), cZ = Math.cos(z), sX = Math.sin(x), sY = Math.sin(y), sZ = Math.sin(z);
+    var Vx = -cZ * sY - sZ * sX * cY;
+    var Vy = -sZ * sY + cZ * sX * cY;
+    var h = Math.atan(Vx / Vy);
+    if(Vy < 0){ h += Math.PI; } else if(Vx < 0){ h += 2 * Math.PI; }
+    return toDeg(h);
+  }
+  function onOrientation(e){
+    var h = null;
+    if(typeof e.webkitCompassHeading === "number"){ h = e.webkitCompassHeading; }
+    else if(e.absolute === true && e.alpha !== null && e.alpha !== undefined){ h = tiltHeading(e.alpha, e.beta, e.gamma); }
+    if(h === null || isNaN(h)) return;
+    rawHeading = (h + 360) % 360;
+    if(!haveHeading){ haveHeading = true; shownHeading = rawHeading; }
+  }
+
+  // Animación
+  function startLoop(){ if(!rafId){ rafId = requestAnimationFrame(frame); } }
+  function stopLoop(){ if(rafId){ cancelAnimationFrame(rafId); rafId = null; } }
+  function frame(){
+    if(haveHeading && rawHeading !== null){
+      var diff = ((rawHeading - shownHeading + 540) % 360) - 180;
+      shownHeading = (shownHeading + diff * 0.18 + 360) % 360;
+      $("ring").setAttribute("transform", "rotate(" + (-shownHeading) + " 150 150)");
+      var markerAngle = targetBearing;
+      $("marker").setAttribute("transform", "rotate(" + markerAngle + " 150 150)");
+      $("guideLine").setAttribute("transform", "rotate(" + markerAngle + " 150 150)");
+      var rel = ((targetBearing - shownHeading + 540) % 360) - 180;
+      var aligned = Math.abs(rel) <= 5;
+      $("compassWrap").classList.toggle("aligned", aligned);
+      $("headNum").textContent = Math.round(shownHeading) + "°";
+      var t = $("turnText"), s = $("subText");
+      if(aligned){
+        t.textContent = "Ahora se están mirando";
+        t.className = "turn aligned-text";
+        s.textContent = "Quédate así. La otra persona puede estar mirando hacia ti en este mismo momento.";
+        if(!wasAligned){ try { if(navigator.vibrate){ navigator.vibrate(80); } } catch(e){} }
+      } else {
+        t.className = "turn";
+        var deg = Math.round(Math.abs(rel));
+        t.textContent = "Gira " + deg + "° a la " + (rel > 0 ? "derecha" : "izquierda");
+        s.textContent = "Cuando el punto dorado llegue a la flecha de arriba, estarás de frente.";
+      }
+      wasAligned = aligned;
+    } else {
+      // sin lectura: deja el anillo con el marcador apuntando al objetivo
+      $("marker").setAttribute("transform", "rotate(" + targetBearing + " 150 150)");
+      $("guideLine").setAttribute("transform", "rotate(" + targetBearing + " 150 150)");
+    }
+    rafId = requestAnimationFrame(frame);
+  }
+})();
+</script>
+</body>
+</html>
